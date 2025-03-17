@@ -32,10 +32,8 @@ class SpawnerStackState extends State<SpawnerStack>
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _keysStacked = List<GlobalKey>.empty(growable: true);
-	final _keysRemoved = HashSet<GlobalKey>();
-
-	final _itemsMap = HashMap<GlobalKey, SpawnerStackItem>();
+	final _remvQueue = Queue<SpawnerStackItem>();
+	final _itemQueue = Queue<SpawnerStackItem>();
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -45,9 +43,9 @@ class SpawnerStackState extends State<SpawnerStack>
 		super.initState();
 
 		// Adding initial resources to stack
-		for ( final resource in widget.resources )
+		for ( final res in widget.resources )
 		{
-			add(resource);
+			add(res);
 		}
 	}
 
@@ -55,57 +53,48 @@ class SpawnerStackState extends State<SpawnerStack>
 
 	void add(IconData resource)
 	{
-		final index = _keysStacked.length;
+		final index = _itemQueue.length;
 
 		setState(() {
 			final stackItem = _createItem(resource, index);
-			final key = stackItem.key as GlobalKey;
-
-			_itemsMap[key] = stackItem;
-			_keysStacked.add(key);
+			_itemQueue.addLast(stackItem);
 		});
 	}
 
 
 	IconData pop()
 	{
-		if ( _keysStacked.isEmpty )
+		if ( _itemQueue.isEmpty )
 		{
 			return Icons.abc;
 		}
 
 		// Pop process
-		final key = _keysStacked.first;
-		final stackItem = _itemsMap[key]!;
+		final stackItem = _itemQueue.first;
+		final key = stackItem.key as GlobalKey<SpawnerStackItemState>;
 
-		final stored = stackItem.resource;
+		final stackState = key.currentState as SpawnerStackItemState;
 
 		setState(() {
-			_keysStacked.removeAt(0);
-			_keysRemoved.add(key);
+			_remvQueue.addFirst(stackItem);
+			_itemQueue.removeFirst();
 
-			_itemsMap[key] = SpawnerStackItem.offset(
-				source: stackItem,
-				offset: -resourceSlotSize
-			);
-
+			stackState.remove();
 			_updateStackItemsOffset();
 		});
 
-		return stored;
+		return stackItem.resource;
 	}
 
 
 	IconData get()
 	{
-		if ( _keysStacked.isEmpty )
+		if ( _itemQueue.isEmpty )
 		{
 			return Icons.abc;
 		}
 
-		// Get process
-		final key = _keysStacked.first;
-		return _itemsMap[key]!.resource;
+		return _itemQueue.first.resource;
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -114,27 +103,27 @@ class SpawnerStackState extends State<SpawnerStack>
 	{
 		// Building tree of widgets
 		return SpawnerStackItem(
-			key: GlobalKey(),
+			key: GlobalKey<SpawnerStackItemState>(),
 			resource: resource,
 
 			offset: _getOffsetValue(index),
-			itemRemove: _handleItemRemove,
+			removeItem: _onRemoveItem,
 		);
 	}
 
 
 	void _updateStackItemsOffset()
 	{
-		for ( int i = 0; i < _keysStacked.length; i++ )
+		int i = 0;
+
+		for ( final item in _itemQueue )
 		{
-			final key = _keysStacked.elementAt(i);
-			final stackItem = _itemsMap[key]!;
+			final key = item.key as GlobalKey<SpawnerStackItemState>;
+			final state = key.currentState as SpawnerStackItemState;
 
 			// Updating stack item offset
-			_itemsMap[key] = SpawnerStackItem.offset(
-				source: stackItem,
-				offset: _getOffsetValue(i)
-			);
+			final offset = _getOffsetValue(i++);
+			state.offset(offset);
 		}
 	}
 
@@ -146,13 +135,9 @@ class SpawnerStackState extends State<SpawnerStack>
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _handleItemRemove(GlobalKey key)
+	void _onRemoveItem()
 	{
-		if ( _keysRemoved.contains(key) )
-		{
-			_keysRemoved.remove(key);
-			_itemsMap.remove(key);
-		}
+		_remvQueue.removeLast();
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -165,7 +150,10 @@ class SpawnerStackState extends State<SpawnerStack>
 			width: resourceLineSize,
 
 			child: Stack(
-				children: _itemsMap.values.toList(growable: false),
+				children: <SpawnerStackItem>
+				[
+					..._remvQueue, ..._itemQueue
+				],
 			),
 		);
 	}
