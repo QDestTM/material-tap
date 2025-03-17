@@ -4,11 +4,11 @@ import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
 
 
-class SpawnerStackItem extends StatelessWidget
+class SpawnerStackItem extends StatefulWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final void Function(GlobalKey key) itemRemove;
+	final void Function() removeItem;
 
 	final IconData resource;
 	final double offset;
@@ -16,41 +16,85 @@ class SpawnerStackItem extends StatelessWidget
 
 	const SpawnerStackItem({
 		required super.key,
-		required this.itemRemove,
-		required this.resource,
+
 		required this.offset,
+		required this.resource,
+
+		required this.removeItem,
 	});
 
+	// # ----------------------------------------------------------------------------------------------------<
 
-	SpawnerStackItem.offset({
-		required SpawnerStackItem source,
-		required double offset
-	}) : this(
-		key: source.key,
-		offset: offset,
+	@override
+	State<SpawnerStackItem> createState() => SpawnerStackItemState();
 
-		resource: source.resource,
-		itemRemove: source.itemRemove
-	);
+	// ------------------------------------------------------------------------------------------------------<
+}
+
+
+class SpawnerStackItemState extends State<SpawnerStackItem>
+{
+	// ^ ----------------------------------------------------------------------------------------------------<
+
+	double _offset = 0.0;
+	bool _remove = false;
 
 	// # ----------------------------------------------------------------------------------------------------<
+
+	@override
+	void initState()
+	{
+		super.initState();
+
+		// Setting initial offset
+		_offset = widget.offset;
+	}
+
+	// @ ----------------------------------------------------------------------------------------------------<
+
+	void offset(double value)
+	{
+		setState(() {
+			_offset = value;
+		});
+	}
+
+
+	void remove()
+	{
+		setState(() {
+			_offset = -resourceSlotSize;
+			_remove = true;
+		});
+	}
+
+	// ------------------------------------------------------------------------------------------------------<
+
+	void _onPositionedEnd()
+	{
+		if ( !_remove ) return;
+		widget.removeItem();
+	}
+
+	// ------------------------------------------------------------------------------------------------------<
 
 	@override
 	Widget build(BuildContext context)
 	{
 		// Building tree of widgets
 		return AnimatedPositioned(
-			key: key,
-			top: offset,
+			top: _offset,
 
 			width: resourceLineSize,
-			onEnd: () => itemRemove(key as GlobalKey),
+			onEnd: _onPositionedEnd,
 
-			duration: const Duration(milliseconds: 800),
+			duration: slotAnimationTime,
 			curve: Curves.easeOutQuart,
 
 			child: Center(
-				child: ResourceSlot(resource: resource),
+				child: ResourceSlot(
+					resource: widget.resource
+				),
 			)
 		);
 	}
