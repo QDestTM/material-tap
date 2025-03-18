@@ -1,18 +1,18 @@
-import 'package:material_tap/widgets/spawner_stack_item.dart';
+import 'package:material_tap/widgets/resource_queue_item.dart';
 import 'package:material_tap/const.dart';
 
 import 'package:flutter/material.dart';
 import 'dart:collection';
 
 
-class SpawnerStack extends StatefulWidget
+class ResourceQueue extends StatefulWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
 	final List<IconData> resources;
 
 
-	const SpawnerStack({
+	const ResourceQueue({
 		super.key,
 		required this.resources
 	});
@@ -20,20 +20,20 @@ class SpawnerStack extends StatefulWidget
 	// # ----------------------------------------------------------------------------------------------------<
 
 	@override
-	State<SpawnerStack> createState() => SpawnerStackState();
+	State<ResourceQueue> createState() => ResourceQueueState();
 
 	// ------------------------------------------------------------------------------------------------------<
 }
 
 
-class SpawnerStackState extends State<SpawnerStack>
+class ResourceQueueState extends State<ResourceQueue>
 {
 	static const double itemsPadding = 10.0;
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _remvQueue = Queue<SpawnerStackItem>();
-	final _itemQueue = Queue<SpawnerStackItem>();
+	final _remvQueue = Queue<ResourceQueueItem>();
+	final _itemQueue = Queue<ResourceQueueItem>();
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -71,9 +71,9 @@ class SpawnerStackState extends State<SpawnerStack>
 
 		// Pop process
 		final stackItem = _itemQueue.first;
-		final key = stackItem.key as GlobalKey<SpawnerStackItemState>;
+		final key = stackItem.key as GlobalKey<ResourceQueueItemState>;
 
-		final stackState = key.currentState as SpawnerStackItemState;
+		final stackState = key.currentState as ResourceQueueItemState;
 
 		setState(() {
 			_remvQueue.addFirst(stackItem);
@@ -99,11 +99,11 @@ class SpawnerStackState extends State<SpawnerStack>
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	SpawnerStackItem _createItem(IconData resource, int index)
+	ResourceQueueItem _createItem(IconData resource, int index)
 	{
 		// Building tree of widgets
-		return SpawnerStackItem(
-			key: GlobalKey<SpawnerStackItemState>(),
+		return ResourceQueueItem(
+			key: GlobalKey<ResourceQueueItemState>(),
 			resource: resource,
 
 			offset: _getOffsetValue(index),
@@ -118,8 +118,8 @@ class SpawnerStackState extends State<SpawnerStack>
 
 		for ( final item in _itemQueue )
 		{
-			final key = item.key as GlobalKey<SpawnerStackItemState>;
-			final state = key.currentState as SpawnerStackItemState;
+			final key = item.key as GlobalKey<ResourceQueueItemState>;
+			final state = key.currentState as ResourceQueueItemState;
 
 			// Updating stack item offset
 			final offset = _getOffsetValue(i++);
@@ -150,7 +150,7 @@ class SpawnerStackState extends State<SpawnerStack>
 			width: resourceLineSize,
 
 			child: Stack(
-				children: <SpawnerStackItem>
+				children: <ResourceQueueItem>
 				[
 					..._remvQueue, ..._itemQueue
 				],

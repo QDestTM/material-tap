@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:material_tap/widgets/resource_sender.dart';
 import 'package:material_tap/widgets/resource_display.dart';
-import 'package:material_tap/widgets/spawner_stack.dart';
+import 'package:material_tap/widgets/resource_queue.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
 
 import 'package:material_tap/const.dart';
@@ -33,12 +33,12 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _display = GlobalKey<ResourceDisplayState>();
-	final _spawner = GlobalKey<SpawnerStackState>();
+	final _resourceDisplay = GlobalKey<ResourceDisplayState>();
+	final _resourceQueue = GlobalKey<ResourceQueueState>();
 
-	final _consumerL = GlobalKey<ResourceSenderState>();
-	final _consumerD = GlobalKey<ResourceSenderState>();
-	final _consumerR = GlobalKey<ResourceSenderState>();
+	final _resourceSenderL = GlobalKey<ResourceSenderState>();
+	final _resourceSenderD = GlobalKey<ResourceSenderState>();
+	final _resourceSenderR = GlobalKey<ResourceSenderState>();
 
 	final _random = Random();
 	var _canTap = true;
@@ -90,7 +90,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		_timeoutTap();
 
 		final resource = _rotateStackResources();
-		_consumerL.currentState?.send(resource);
+		_resourceSenderL.currentState?.send(resource);
 	}
 
 
@@ -100,7 +100,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		_timeoutTap();
 
 		final resource = _rotateStackResources();
-		_consumerD.currentState?.send(resource);
+		_resourceSenderD.currentState?.send(resource);
 	}
 
 
@@ -110,22 +110,22 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		_timeoutTap();
 
 		final resource = _rotateStackResources();
-		_consumerR.currentState?.send(resource);
+		_resourceSenderR.currentState?.send(resource);
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
 	IconData _rotateStackResources()
 	{
-		final currentResource = _spawner.currentState?.pop();
+		final currentResource = _resourceQueue.currentState?.pop();
 
 		// Receiving next resource
 		final nextResource = _getRandomResource();
-		_spawner.currentState?.add(nextResource);
+		_resourceQueue.currentState?.add(nextResource);
 
 		// Updating display
-		final nextDisplay = _spawner.currentState?.get();
-		_display.currentState?.replace(nextDisplay!);
+		final nextDisplay = _resourceQueue.currentState?.get();
+		_resourceDisplay.currentState?.replace(nextDisplay!);
 
 		return currentResource!;
 	}
@@ -200,14 +200,14 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 							[
 								Expanded(
 									child: ResourceSender(
-										key: _consumerD,
+										key: _resourceSenderD,
 										direction: AxisDirection.up
 									),
 								),
 
 								Expanded(
-									child: SpawnerStack(
-										key: _spawner,
+									child: ResourceQueue(
+										key: _resourceQueue,
 										resources: initial,
 									),
 								),
@@ -221,14 +221,14 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 							children: <Expanded>[
 								Expanded(
 									child: ResourceSender(
-										key: _consumerL,
+										key: _resourceSenderL,
 										direction: AxisDirection.left
 									),
 								),
 
 								Expanded(
 									child: ResourceSender(
-										key: _consumerR,
+										key: _resourceSenderR,
 										direction: AxisDirection.right
 									),
 								)
@@ -239,7 +239,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 					// Resource display component
 					Center(
 						child: ResourceDisplay(
-							key: _display,
+							key: _resourceDisplay,
 							resource: initial.first,
 						),
 					),

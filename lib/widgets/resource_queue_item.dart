@@ -4,7 +4,7 @@ import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
 
 
-class SpawnerStackItem extends StatefulWidget
+class ResourceQueueItem extends StatefulWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
@@ -14,7 +14,7 @@ class SpawnerStackItem extends StatefulWidget
 	final double offset;
 
 
-	const SpawnerStackItem({
+	const ResourceQueueItem({
 		required super.key,
 
 		required this.offset,
@@ -26,13 +26,13 @@ class SpawnerStackItem extends StatefulWidget
 	// # ----------------------------------------------------------------------------------------------------<
 
 	@override
-	State<SpawnerStackItem> createState() => SpawnerStackItemState();
+	State<ResourceQueueItem> createState() => ResourceQueueItemState();
 
 	// ------------------------------------------------------------------------------------------------------<
 }
 
 
-class SpawnerStackItemState extends State<SpawnerStackItem>
+class ResourceQueueItemState extends State<ResourceQueueItem>
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
