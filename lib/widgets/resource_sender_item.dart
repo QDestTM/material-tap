@@ -1,24 +1,24 @@
-import 'package:material_tap/widgets/resource_slot.dart';
+import 'package:material_tap/widgets/resource_display.dart';
+import 'package:material_tap/types.dart';
 
-import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
 
 
-class ResourceSenderItem extends StatefulWidget
+class ResourceSenderItem extends StatelessWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final void Function(IconData resource) checkResource;
+	final void Function(ResourceData data) checkResource;
 	final void Function() removeItem;
 
-	final Alignment startAlignment;
-	final Alignment endAlignment;
+	final Alignment displayAlignment;
+	final ResourceData displayData;
 
 	const ResourceSenderItem({
 		required super.key,
 
-		required this.startAlignment,
-		required this.endAlignment,
+		required this.displayAlignment,
+		required this.displayData,
 
 		required this.checkResource,
 		required this.removeItem
@@ -26,51 +26,17 @@ class ResourceSenderItem extends StatefulWidget
 
 	// # ----------------------------------------------------------------------------------------------------<
 
-	@override
-	State<ResourceSenderItem> createState() => ResourceSenderItemState();
-
-	// ------------------------------------------------------------------------------------------------------<
-}
-
-class ResourceSenderItemState extends State<ResourceSenderItem>
-{
-	// ^ ----------------------------------------------------------------------------------------------------<
-
-	IconData _resource = Icons.dangerous;
-
-	bool _sended = false;
-	bool _remove = false;
-
-	// # ----------------------------------------------------------------------------------------------------<
-
-	void send(IconData resource)
+	ResourceSenderItem sended(Alignment alignment, ResourceData data)
 	{
-		setState(() {
-			_resource = resource;
-			_sended = true;
-		});
-	}
+		return ResourceSenderItem(
+			key: key,
 
-	// ------------------------------------------------------------------------------------------------------<
+			displayAlignment: alignment,
+			displayData: data,
 
-	void _onAlignAnimationEnd()
-	{
-		if ( !_sended ) return;
-
-		// Call check resource callback
-		widget.checkResource(_resource);
-
-		// Start remove animation
-		setState(() {
-			_remove = true;
-		});
-	}
-
-
-	void _onScaleAnimationEnd()
-	{
-		if ( !_remove ) return;
-		widget.removeItem();
+			checkResource: checkResource,
+			removeItem: removeItem
+		);
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -80,25 +46,15 @@ class ResourceSenderItemState extends State<ResourceSenderItem>
 	{
 		// Building tree of widgets
 		return AnimatedAlign(
-			duration: slotAnimationTime,
+			duration: const Duration(milliseconds: 800),
 			curve: Curves.easeOutQuart,
 
-			onEnd: _onAlignAnimationEnd,
-			alignment: _sended
-				? widget.endAlignment
-				: widget.startAlignment,
+			onEnd: () {
+				checkResource(displayData); removeItem();
+			},
 
-			child: AnimatedScale(
-				duration: slotAnimationTime,
-				curve: Curves.easeOutQuart,
-
-				scale: _remove ? 0.0 : 1.0,
-				onEnd: _onScaleAnimationEnd,
-
-				child: ResourceSlot(
-					resource: _resource,
-				),
-			),
+			alignment: displayAlignment,
+			child: ResourceDisplay(data: displayData),
 		);
 	}
 
