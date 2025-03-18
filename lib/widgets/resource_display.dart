@@ -39,6 +39,10 @@ class ResourceDisplay extends StatelessWidget
 	{
 		final scheme = Theme.of(context).colorScheme;
 
+		// Validate display size and icon size
+		assert(dispSize > 0, "Disp size must be bigger than zero.");
+		assert(iconSize > 0, "Icon size must be bigger than zero.");
+
 		// Building tree of the widgets
 		return Container(
 			width: dispSize,

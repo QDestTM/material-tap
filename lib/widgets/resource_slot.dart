@@ -92,6 +92,10 @@ class ResourceSlotState extends State<ResourceSlot>
 	{
 		final scheme = Theme.of(context).colorScheme;
 
+		// Validate slot size and icon size
+		assert(widget.slotSize > 0, "Slot size must be bigger than zero.");
+		assert(widget.iconSize > 0, "Icon size must be bigger than zero.");
+
 		// Building tree of the widgets
 		return Container(
 			width: widget.slotSize,
