@@ -1,13 +1,13 @@
-import 'dart:async';
-
+import 'package:material_tap/widgets/resource_spawner.dart';
 import 'package:material_tap/widgets/resource_sender.dart';
-import 'package:material_tap/widgets/resource_display.dart';
-import 'package:material_tap/widgets/resource_queue.dart';
-import 'package:wakelock_plus/wakelock_plus.dart';
-
+import 'package:material_tap/widgets/resource_slot.dart';
+import 'package:material_tap/types.dart';
 import 'package:material_tap/const.dart';
+
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/material.dart';
 
+import 'dart:async';
 import 'dart:math';
 
 
@@ -31,18 +31,42 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	static const int initialResourcesCount = 12;
 	static const int tapTimeout = 200;
 
+	// Constants for bottom nav bar components
+	static const double bottomNavBtnIconsSize = 48.0;
+	static const double bottomNavBarHeight = 64.0;
+
+	static const bottomNavBtnIconShadows = <BoxShadow>
+	[
+		BoxShadow(
+			color: Color.fromARGB(124, 0, 0, 0),
+			spreadRadius: 4,
+			blurRadius: 4,
+			offset: Offset(1, 1)
+		)
+	];
+
+	static const bottomNavBarShadows = <BoxShadow>
+	[
+		BoxShadow(
+			color: Color.fromARGB(124, 0, 0, 0),
+			blurRadius: 3,
+			spreadRadius: 2,
+		)
+	];
+
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _resourceDisplay = GlobalKey<ResourceDisplayState>();
-	final _resourceQueue = GlobalKey<ResourceQueueState>();
+	final _resourceSpawner = GlobalKey<ResourceSpawnerState>();
+	final _resourceSlot = GlobalKey<ResourceSlotState>();
 
 	final _resourceSenderL = GlobalKey<ResourceSenderState>();
 	final _resourceSenderD = GlobalKey<ResourceSenderState>();
 	final _resourceSenderR = GlobalKey<ResourceSenderState>();
 
-	final _random = Random();
+	final _randomGenerator = Random();
 
-	var _canTap = true;
+	late final List<ResourceData> initialResources;
+	late bool _canTap = true;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -50,6 +74,11 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	void initState()
 	{
 		super.initState();
+
+		// Creating list with initial resources
+		initialResources = List.generate(
+			initialResourcesCount, (_) => _getRandomResource()
+		);
 
 		// Binding widgets binding observer
 		WidgetsBinding.instance.addObserver(this);
@@ -90,7 +119,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		if ( !_canTap ) return;
 		_timeoutTap();
 
-		final resource = _rotateStackResources();
+		final resource = _rotateSpawner();
 		_resourceSenderL.currentState?.send(resource);
 	}
 
@@ -100,7 +129,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		if ( !_canTap ) return;
 		_timeoutTap();
 
-		final resource = _rotateStackResources();
+		final resource = _rotateSpawner();
 		_resourceSenderD.currentState?.send(resource);
 	}
 
@@ -110,33 +139,60 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		if ( !_canTap ) return;
 		_timeoutTap();
 
-		final resource = _rotateStackResources();
+		final resource = _rotateSpawner();
 		_resourceSenderR.currentState?.send(resource);
+	}
+
+
+	void _handleDragEndV(DragEndDetails details)
+	{
+		if ( details.primaryVelocity! < 0 ) {
+			_handlePressD();
+		}
+	}
+
+
+	void _handleDragEndH(DragEndDetails details)
+	{
+		if ( details.primaryVelocity! > 0 ) {
+			_handlePressR();
+		} else
+		if ( details.primaryVelocity! < 0 ) {
+			_handlePressL();
+		}
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	IconData _rotateStackResources()
+	ResourceData _rotateSpawner()
 	{
-		final currentResource = _resourceQueue.currentState?.pop();
+		final spawnerState = _resourceSpawner.currentState;
+		final slotState = _resourceSlot.currentState;
 
-		// Receiving next resource
+		// Null check for states
+		if ( slotState == null || spawnerState == null )
+		{
+			return Icons.dangerous;
+		}
+
+		// Putting next resource to spawner
 		final nextResource = _getRandomResource();
-		_resourceQueue.currentState?.add(nextResource);
+		spawnerState.put(nextResource);
 
-		// Updating display
-		final nextDisplay = _resourceQueue.currentState?.get();
-		_resourceDisplay.currentState?.replace(nextDisplay!);
+		// Updating resource in slot
+		final spawnedResource = spawnerState.get();
+		slotState.set(spawnerState.pending);
 
-		return currentResource!;
+		return spawnedResource;
 	}
 
 
-	IconData _getRandomResource()
+	ResourceData _getRandomResource()
 	{
-		return resourceIconsSet[
-			_random.nextInt(resourceIconsSet.length - 1)
-		];
+		final length = resourceDataSet.length;
+		final index = _randomGenerator.nextInt(length);
+
+		return resourceDataSet[index];
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -158,11 +214,6 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	{
 		final scheme = Theme.of(context).colorScheme;
 
-		// Generating set of initial resources
-		final initial = List.generate(
-			initialResourcesCount, (_) => _getRandomResource()
-		);
-
 		// Building tree of widgets
 		return Scaffold(
 			appBar: AppBar(
@@ -178,23 +229,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 
 				children: <Widget>
 				[
-					// Middle vertical line display
-					Center(
-						child: Container(
-							width: resourceLineSize,
-							color: scheme.secondaryFixedDim,
-						),
-					),
-
-					// Middle horizontal line display
-					Center(
-						child: Container(
-							height: resourceLineSize,
-							color: scheme.secondaryFixedDim,
-						),
-					),
-
-					// Vertical resource layout items
+					// Vertical components
 					Center(
 						child: Column(
 							children: <Expanded>
@@ -207,63 +242,64 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 								),
 
 								Expanded(
-									child: ResourceQueue(
-										key: _resourceQueue,
-										resources: initial,
+									child: ResourceSpawner(
+										key: _resourceSpawner,
+										initialData: initialResources,
 									),
 								),
 							],
 						),
 					),
 
-					// Horizontal resource layout items
+					// Horizontal components
 					Center(
 						child: Row(
-							children: <Expanded>[
+							children: <Expanded>
+							[
 								Expanded(
 									child: ResourceSender(
 										key: _resourceSenderL,
-										direction: AxisDirection.left
+										direction: AxisDirection.left,
 									),
 								),
 
 								Expanded(
 									child: ResourceSender(
 										key: _resourceSenderR,
-										direction: AxisDirection.right
+										direction: AxisDirection.right,
 									),
 								)
 							],
 						),
 					),
 
-					// Resource display component
+					// Resource slot component
 					Center(
-						child: ResourceDisplay(
-							key: _resourceDisplay,
-							resource: initial.first,
+						child: ResourceSlot(
+							key: _resourceSlot,
+							data: initialResources.first,
 						),
 					),
+
+					GestureDetector(
+						onVerticalDragEnd: _handleDragEndV,
+						onHorizontalDragEnd: _handleDragEndH,
+					)
 				],
 			),
 
 			bottomNavigationBar: Container(
 				key: GlobalKey(debugLabel: "Bottom Nav Bar"),
-
-				constraints: const BoxConstraints(
-					minHeight: resourceLineSize,
-					maxHeight: resourceLineSize
-				),
+				height: bottomNavBarHeight,
 
 				decoration: BoxDecoration(
 					color: scheme.secondaryFixed,
+					boxShadow: bottomNavBarShadows,
 
 					borderRadius: const BorderRadius.only(
 						topLeft: Radius.circular(42.0),
 						topRight: Radius.circular(42.0),
 					),
-
-					boxShadow: itemBaseShadows
 				),
 
 				child: Row(
@@ -273,42 +309,48 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 					[
 						// Left move action button
 						Expanded(
+							flex: 1,
+
 							child: IconButton(
 								onPressed: _handlePressL,
 								highlightColor: scheme.secondaryFixedDim,
 
 								tooltip: "Move Left",
 								icon: const Icon(
-									shadows: iconBaseShadows,
-									Icons.turn_left, size: 64.0
+									shadows: bottomNavBtnIconShadows,
+									Icons.turn_left, size: bottomNavBtnIconsSize
 								),
 							),
 						),
 
 						// Middle move action button
 						Expanded(
+							flex: 1,
+
 							child: IconButton(
 								onPressed: _handlePressD,
 								highlightColor: scheme.secondaryFixedDim,
 
 								tooltip: "Move Delete",
 								icon: const Icon(
-									shadows: iconBaseShadows,
-									Icons.delete, size: 64.0
+									shadows: bottomNavBtnIconShadows,
+									Icons.delete, size: bottomNavBtnIconsSize
 								),
 							),
 						),
 
 						// Right move action button
 						Expanded(
+							flex: 1,
+
 							child: IconButton(
 								onPressed: _handlePressR,
 								highlightColor: scheme.secondaryFixedDim,
 
 								tooltip: "Move Right",
 								icon: const Icon(
-									shadows: iconBaseShadows,
-									Icons.turn_right, size: 64.0
+									shadows: bottomNavBtnIconShadows,
+									Icons.turn_right, size: bottomNavBtnIconsSize
 								),
 							),
 						)
