@@ -100,6 +100,8 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 		// Building tree of widgets
 		return ResourceSpawnerItem(
 			key: UniqueKey(),
+
+			size: widget.size,
 			data: data,
 
 			offset: _getOffsetAt(index),

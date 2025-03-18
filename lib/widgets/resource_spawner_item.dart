@@ -1,7 +1,6 @@
 import 'package:material_tap/widgets/resource_display.dart';
-
 import 'package:material_tap/types.dart';
-import 'package:material_tap/const.dart';
+
 import 'package:flutter/material.dart';
 
 
@@ -13,11 +12,13 @@ class ResourceSpawnerItem extends StatelessWidget
 
 	final ResourceData data;
 	final double offset;
+	final double size;
 
 	const ResourceSpawnerItem({
 		required super.key,
 
 		required this.offset,
+		required this.size,
 		required this.data,
 
 		required this.itemRemove,
@@ -28,7 +29,11 @@ class ResourceSpawnerItem extends StatelessWidget
 	ResourceSpawnerItem withOffset(double offset)
 	{
 		return ResourceSpawnerItem(
-			key: key, data: data,
+			key: key,
+
+			size: size,
+			data: data,
+
 			itemRemove: itemRemove,
 			offset: offset,
 		);
@@ -43,8 +48,8 @@ class ResourceSpawnerItem extends StatelessWidget
 		return AnimatedPositioned(
 			top: offset,
 
-			width: resourceLineSize,
 			onEnd: itemRemove,
+			width: size,
 
 			duration: const Duration(milliseconds: 800),
 			curve: Curves.easeOutQuart,
