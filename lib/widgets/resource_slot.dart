@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 class ResourceSlot extends StatefulWidget
 {
 	static const double defaultSlotSize = 100.0;
-	static const double defaultIconSize = 72.0;
+	static const double defaultIconSize = 64.0;
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
