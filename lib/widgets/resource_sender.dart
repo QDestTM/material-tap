@@ -1,21 +1,31 @@
 import 'package:material_tap/widgets/resource_sender_item.dart';
+import 'package:material_tap/types.dart';
 
-import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
-
 import 'dart:collection';
 
 
 class ResourceSender extends StatefulWidget
 {
+	static const double defaultSize = 86.0;
+
 	// # ----------------------------------------------------------------------------------------------------<
 
 	final AxisDirection direction;
+	final double size;
 
 	const ResourceSender({
 		super.key,
+		this.size = defaultSize,
 		required this.direction
 	});
+
+
+	bool get isHorizontal =>
+		direction == AxisDirection.left || direction == AxisDirection.right;
+
+	bool get isVertical =>
+		direction == AxisDirection.up || direction == AxisDirection.down;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -28,12 +38,33 @@ class ResourceSender extends StatefulWidget
 
 class ResourceSenderState extends State<ResourceSender>
 {
-	static const double endPadding = 10.0;
+	// Maps for alignments based on direction
+	static const startAlignmentMap = <AxisDirection, Alignment>
+	{
+		AxisDirection.up    : Alignment.bottomCenter,
+		AxisDirection.right : Alignment.centerLeft  ,
+		AxisDirection.down  : Alignment.topCenter   ,
+		AxisDirection.left  : Alignment.centerRight ,
+	};
+
+	static const endAlignmentMap = <AxisDirection, Alignment>
+	{
+		AxisDirection.up    : Alignment.topCenter   ,
+		AxisDirection.right : Alignment.centerRight ,
+		AxisDirection.down  : Alignment.bottomCenter,
+		AxisDirection.left  : Alignment.centerLeft  ,
+	};
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _itemQueue = Queue<ResourceSenderItem>();
-	var _pending = GlobalKey<ResourceSenderItemState>();
+	final _itemsQueue = Queue<ResourceSenderItem>();
+	late ResourceSenderItem _pendingItem;
+
+	Alignment get startAlignment
+		=> startAlignmentMap[widget.direction]!;
+
+	Alignment get endAlignment
+		=> endAlignmentMap[widget.direction]!;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -43,18 +74,19 @@ class ResourceSenderState extends State<ResourceSender>
 		super.initState();
 
 		// Creating initial pending item
-		_createPendingItem();
+		_pendingItem = _createItem();
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	void send(IconData resource)
+	void send(ResourceData data)
 	{
-		final pendingState = _pending.currentState!;
-
 		setState(() {
-			pendingState.send(resource);
-			_createPendingItem();
+			final sended = _pendingItem
+				.sended(endAlignment, data);
+
+			_itemsQueue.addLast(sended);
+			_pendingItem = _createItem();
 		});
 	}
 
@@ -64,110 +96,29 @@ class ResourceSenderState extends State<ResourceSender>
 	{
 		// Building tree of widgets
 		return ResourceSenderItem(
-			key: GlobalKey<ResourceSenderItemState>(),
+			key: UniqueKey(),
 
-			startAlignment: _getStartAlignment(),
-			endAlignment: _getEndAlignment(),
+			displayAlignment: startAlignment,
+			displayData: Icons.dangerous,
 
 			checkResource: _onCheckResource,
 			removeItem: _onRemoveItem,
 		);
 	}
 
-
-	void _createPendingItem()
-	{
-		final pendingItem = _createItem();
-
-		// Getting and updating key of new pending item
-		_pending = pendingItem.key as GlobalKey<ResourceSenderItemState>;
-
-		// Adding item to items stack
-		_itemQueue.add(pendingItem);
-	}
-
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _onCheckResource(IconData resource)
+	void _onCheckResource(ResourceData data)
 	{
-
+		// TODO: Implement this later.
 	}
 
 
 	void _onRemoveItem()
 	{
-		_itemQueue.removeFirst();
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
-
-	double _getContainerWidth()
-	{
-		final bool directed =
-			widget.direction == AxisDirection.up ||
-			widget.direction == AxisDirection.down;
-
-		return directed ? resourceLineSize : double.infinity;
-	}
-
-
-	double _getContainerHeight()
-	{
-		final bool directed =
-			widget.direction == AxisDirection.left ||
-			widget.direction == AxisDirection.right;
-
-		return directed ? resourceLineSize : double.infinity;
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
-
-	Alignment _getStartAlignment()
-	{
-		switch (widget.direction)
-		{
-			case AxisDirection.up:
-				return Alignment.bottomCenter;
-			case AxisDirection.right:
-				return Alignment.centerLeft;
-			case AxisDirection.down:
-				return Alignment.topCenter;
-			case AxisDirection.left:
-				return Alignment.centerRight;
-		}
-	}
-
-
-	Alignment _getEndAlignment()
-	{
-		switch (widget.direction)
-		{
-			case AxisDirection.up:
-				return Alignment.topCenter;
-			case AxisDirection.right:
-				return Alignment.centerRight;
-			case AxisDirection.down:
-				return Alignment.bottomCenter;
-			case AxisDirection.left:
-				return Alignment.centerLeft;
-		}
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
-
-	EdgeInsets _getPadding()
-	{
-		switch (widget.direction)
-		{
-			case AxisDirection.up:
-				return const EdgeInsets.only(top: endPadding);
-			case AxisDirection.right:
-				return const EdgeInsets.only(right: endPadding);
-			case AxisDirection.down:
-				return const EdgeInsets.only(bottom: endPadding);
-			case AxisDirection.left:
-				return const EdgeInsets.only(left: endPadding);
-		}
+		setState(() {
+			_itemsQueue.removeFirst();
+		});
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -175,17 +126,21 @@ class ResourceSenderState extends State<ResourceSender>
 	@override
 	Widget build(BuildContext context)
 	{
+		final scheme = Theme.of(context).colorScheme;
+
 		// Building tree of widgets
-		return SizedBox(
-			width: _getContainerWidth(),
-			height: _getContainerHeight(),
+		return Container(
+			color: scheme.secondaryFixedDim,
+			constraints: widget.isVertical
+				? BoxConstraints.tightFor(width: widget.size)
+				: BoxConstraints.tightFor(height: widget.size),
 
-			child: Padding(
-				padding: _getPadding(),
-
-				child: Stack(
-					children: _itemQueue.toList(),
-				),
+			child: Stack(
+				children: <ResourceSenderItem>
+				[
+					_pendingItem,
+					..._itemsQueue
+				],
 			),
 		);
 	}
