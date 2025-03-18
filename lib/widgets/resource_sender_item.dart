@@ -4,7 +4,7 @@ import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
 
 
-class ConsumerStackItem extends StatefulWidget
+class ResourceSenderItem extends StatefulWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
@@ -14,7 +14,7 @@ class ConsumerStackItem extends StatefulWidget
 	final Alignment startAlignment;
 	final Alignment endAlignment;
 
-	const ConsumerStackItem({
+	const ResourceSenderItem({
 		required super.key,
 
 		required this.startAlignment,
@@ -27,12 +27,12 @@ class ConsumerStackItem extends StatefulWidget
 	// # ----------------------------------------------------------------------------------------------------<
 
 	@override
-	State<ConsumerStackItem> createState() => ConsumerStackItemState();
+	State<ResourceSenderItem> createState() => ResourceSenderItemState();
 
 	// ------------------------------------------------------------------------------------------------------<
 }
 
-class ConsumerStackItemState extends State<ConsumerStackItem>
+class ResourceSenderItemState extends State<ResourceSenderItem>
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 

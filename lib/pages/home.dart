@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:material_tap/widgets/consumer_stack.dart';
+import 'package:material_tap/widgets/resource_sender.dart';
 import 'package:material_tap/widgets/resource_display.dart';
 import 'package:material_tap/widgets/spawner_stack.dart';
 import 'package:wakelock_plus/wakelock_plus.dart';
@@ -36,9 +36,9 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	final _display = GlobalKey<ResourceDisplayState>();
 	final _spawner = GlobalKey<SpawnerStackState>();
 
-	final _consumerL = GlobalKey<ConsumerStackState>();
-	final _consumerD = GlobalKey<ConsumerStackState>();
-	final _consumerR = GlobalKey<ConsumerStackState>();
+	final _consumerL = GlobalKey<ResourceSenderState>();
+	final _consumerD = GlobalKey<ResourceSenderState>();
+	final _consumerR = GlobalKey<ResourceSenderState>();
 
 	final _random = Random();
 	var _canTap = true;
@@ -199,7 +199,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 							children: <Expanded>
 							[
 								Expanded(
-									child: ConsumerStack(
+									child: ResourceSender(
 										key: _consumerD,
 										direction: AxisDirection.up
 									),
@@ -220,14 +220,14 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 						child: Row(
 							children: <Expanded>[
 								Expanded(
-									child: ConsumerStack(
+									child: ResourceSender(
 										key: _consumerL,
 										direction: AxisDirection.left
 									),
 								),
 
 								Expanded(
-									child: ConsumerStack(
+									child: ResourceSender(
 										key: _consumerR,
 										direction: AxisDirection.right
 									),

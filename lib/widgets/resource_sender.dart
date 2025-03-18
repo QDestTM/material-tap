@@ -1,4 +1,4 @@
-import 'package:material_tap/widgets/consumer_stack_item.dart';
+import 'package:material_tap/widgets/resource_sender_item.dart';
 
 import 'package:material_tap/const.dart';
 import 'package:flutter/material.dart';
@@ -6,14 +6,13 @@ import 'package:flutter/material.dart';
 import 'dart:collection';
 
 
-class ConsumerStack extends StatefulWidget
+class ResourceSender extends StatefulWidget
 {
 	// # ----------------------------------------------------------------------------------------------------<
 
 	final AxisDirection direction;
 
-
-	const ConsumerStack({
+	const ResourceSender({
 		super.key,
 		required this.direction
 	});
@@ -21,20 +20,20 @@ class ConsumerStack extends StatefulWidget
 	// # ----------------------------------------------------------------------------------------------------<
 
 	@override
-	State<ConsumerStack> createState() => ConsumerStackState();
+	State<ResourceSender> createState() => ResourceSenderState();
 
 	// ------------------------------------------------------------------------------------------------------<
 }
 
 
-class ConsumerStackState extends State<ConsumerStack>
+class ResourceSenderState extends State<ResourceSender>
 {
 	static const double endPadding = 10.0;
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _itemQueue = Queue<ConsumerStackItem>();
-	var _pending = GlobalKey<ConsumerStackItemState>();
+	final _itemQueue = Queue<ResourceSenderItem>();
+	var _pending = GlobalKey<ResourceSenderItemState>();
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -61,11 +60,11 @@ class ConsumerStackState extends State<ConsumerStack>
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	ConsumerStackItem _createItem()
+	ResourceSenderItem _createItem()
 	{
 		// Building tree of widgets
-		return ConsumerStackItem(
-			key: GlobalKey<ConsumerStackItemState>(),
+		return ResourceSenderItem(
+			key: GlobalKey<ResourceSenderItemState>(),
 
 			startAlignment: _getStartAlignment(),
 			endAlignment: _getEndAlignment(),
@@ -81,7 +80,7 @@ class ConsumerStackState extends State<ConsumerStack>
 		final pendingItem = _createItem();
 
 		// Getting and updating key of new pending item
-		_pending = pendingItem.key as GlobalKey<ConsumerStackItemState>;
+		_pending = pendingItem.key as GlobalKey<ResourceSenderItemState>;
 
 		// Adding item to items stack
 		_itemQueue.add(pendingItem);
