@@ -124,7 +124,12 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _onItemRemove() => _remvQueue.removeLast();
+	void _onItemRemove()
+	{
+		setState(() {
+			_remvQueue.removeLast();
+		});
+	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
