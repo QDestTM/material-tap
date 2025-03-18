@@ -1,7 +1,6 @@
-import 'package:material_tap/types.dart';
-import 'package:material_tap/widgets/resource_slot.dart';
 import 'package:material_tap/widgets/resource_spawner_item.dart';
-import 'package:material_tap/const.dart';
+import 'package:material_tap/widgets/resource_display.dart';
+import 'package:material_tap/types.dart';
 
 import 'package:flutter/material.dart';
 import 'dart:collection';
@@ -9,14 +8,17 @@ import 'dart:collection';
 
 class ResourceSpawner extends StatefulWidget
 {
+	static const double defaultSize = 86.0;
+
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final List<IconData> resources;
-
+	final List<ResourceData> initialData;
+	final double size;
 
 	const ResourceSpawner({
 		super.key,
-		required this.resources
+		this.size = defaultSize,
+		required this.initialData
 	});
 
 	// # ----------------------------------------------------------------------------------------------------<
@@ -48,7 +50,7 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 		super.initState();
 
 		// Adding initial resources to stack
-		for ( final res in widget.resources )
+		for ( final res in widget.initialData )
 		{
 			put(res);
 		}
@@ -82,7 +84,7 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 
 			// Set negative offset value for remove animation
 			_remvQueue.addFirst(
-				item.withOffset(-ResourceSlot.defaultSlotSize)
+				item.withOffset(-ResourceDisplay.defaultDispSize)
 			);
 
 			_updateItemsOffset();
@@ -129,9 +131,12 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 	@override
 	Widget build(BuildContext context)
 	{
+		final scheme = Theme.of(context).colorScheme;
+
 		// Building tree of widgets
-		return SizedBox(
-			width: resourceLineSize,
+		return Container(
+			width: widget.size,
+			color: scheme.secondaryFixedDim,
 
 			child: Stack(
 				children: <ResourceSpawnerItem>
@@ -147,7 +152,7 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 
 	static double _getOffsetAt(int index)
 	{
-		return index * itemsPadding + ResourceSlot.defaultSlotSize * index;
+		return (ResourceDisplay.defaultDispSize + itemsPadding) * index;
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
