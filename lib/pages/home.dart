@@ -41,6 +41,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	final _resourceSenderR = GlobalKey<ResourceSenderState>();
 
 	final _random = Random();
+
 	var _canTap = true;
 
 	// # ----------------------------------------------------------------------------------------------------<
