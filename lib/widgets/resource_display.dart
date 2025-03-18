@@ -1,104 +1,57 @@
+import 'package:material_tap/types.dart';
 import 'package:flutter/material.dart';
-import 'package:material_tap/const.dart';
 
 
-class ResourceDisplay extends StatefulWidget
+/// A stateless widget that displays an icon representing a resource.
+class ResourceDisplay extends StatelessWidget
 {
+	static const double defaultIconSize = defaultDispSize / 2.0;
+	static const double defaultDispSize = 64.0;
+
+	static const shadows = <BoxShadow>
+	[
+		BoxShadow(
+			color: Color.fromARGB(124, 0, 0, 0),
+			blurRadius: 3, spreadRadius: 2,
+		),
+	];
+
+	static final borderRadius = BorderRadius.circular(10.0);
+
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final IconData resource;
+	final ResourceData data;
 
+	final double dispSize;
+	final double iconSize;
 
 	const ResourceDisplay({
 		super.key,
-		required this.resource
+		this.data = Icons.dangerous,
+		this.dispSize = defaultDispSize,
+		this.iconSize = defaultIconSize
 	});
 
 	// # ----------------------------------------------------------------------------------------------------<
-
-	@override
-	State<ResourceDisplay> createState() => ResourceDisplayState();
-
-	// ------------------------------------------------------------------------------------------------------<
-}
-
-
-class ResourceDisplayState extends State<ResourceDisplay>
-{
-	// ^ ----------------------------------------------------------------------------------------------------<
-
-	final _res0Key = GlobalKey();
-	final _res1Key = GlobalKey();
-
-	IconData _resource0 = Icons.dangerous;
-	IconData _resource1 = Icons.dangerous;
-
-	bool _switch = true; // false for 0, true for 1
-
-	// # ----------------------------------------------------------------------------------------------------<
-
-	@override
-	void initState() {
-		super.initState();
-
-		// Setting initial resource
-		_resource1 = widget.resource;
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
-
-	IconData replace(IconData resource)
-	{
-		final stored = _switch ? _resource1 : _resource0;
-
-		setState(() {
-			_switch = !_switch;
-
-			if ( _switch ) {
-				_resource1 = resource;
-			} else {
-				_resource0 = resource;
-			}
-		});
-
-		return stored;
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
 
 	@override
 	Widget build(BuildContext context)
 	{
 		final scheme = Theme.of(context).colorScheme;
 
-		// Building tree of widgets
+		// Building tree of the widgets
 		return Container(
-			width: resourceDisplaySize,
-			height: resourceDisplaySize,
+			width: dispSize,
+			height: dispSize,
 
 			decoration: BoxDecoration(
-				color: scheme.secondaryFixed,
-				borderRadius: BorderRadius.circular(32.0),
-				boxShadow: itemBaseShadows
+				color: scheme.primaryFixed,
+				borderRadius: borderRadius,
+				boxShadow: shadows
 			),
 
-			child: AnimatedSwitcher(
-				duration: Duration(milliseconds: 500),
-				reverseDuration: Duration(milliseconds: 0),
-
-				switchInCurve: Curves.easeOutQuart,
-
-				transitionBuilder: (child, animation) {
-					return ScaleTransition(
-						scale: animation, child: child
-					);
-				},
-
-				child: _switch
-					? Icon(_resource1, key: _res1Key,
-						size: resourceDisplayIconSize, shadows: iconBaseShadows)
-					: Icon(_resource0, key: _res0Key,
-						size: resourceDisplayIconSize, shadows: iconBaseShadows),
+			child: Icon(
+				data, size: iconSize, shadows: shadows
 			),
 		);
 	}
