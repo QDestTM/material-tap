@@ -129,18 +129,21 @@ class ResourceSenderState extends State<ResourceSender>
 		final scheme = Theme.of(context).colorScheme;
 
 		// Building tree of widgets
-		return Container(
+		return ColoredBox(
 			color: scheme.secondaryFixedDim,
-			constraints: widget.isVertical
-				? BoxConstraints.tightFor(width: widget.size)
-				: BoxConstraints.tightFor(height: widget.size),
 
-			child: Stack(
-				children: <ResourceSenderItem>
-				[
-					_pendingItem,
-					..._itemsQueue
-				],
+			child: ConstrainedBox(
+				constraints: widget.isVertical
+					? BoxConstraints.tightFor(width: widget.size)
+					: BoxConstraints.tightFor(height: widget.size),
+
+				child: Stack(
+					children: <ResourceSenderItem>
+					[
+						_pendingItem,
+						..._itemsQueue
+					],
+				),
 			),
 		);
 	}
