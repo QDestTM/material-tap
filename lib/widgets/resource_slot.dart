@@ -97,32 +97,34 @@ class ResourceSlotState extends State<ResourceSlot>
 		assert(widget.iconSize > 0, "Icon size must be bigger than zero.");
 
 		// Building tree of the widgets
-		return Container(
-			width: widget.slotSize,
-			height: widget.slotSize,
-
+		return DecoratedBox(
 			decoration: BoxDecoration(
 				color: scheme.secondaryFixed,
 				borderRadius: borderRadius,
 				boxShadow: shadows
 			),
 
-			child: AnimatedSwitcher(
-				duration: const Duration(milliseconds: 500),
-				reverseDuration: const Duration(milliseconds: 0),
+			child: SizedBox(
+				width: widget.slotSize,
+				height: widget.slotSize,
 
-				switchInCurve: Curves.easeOutQuart,
-				switchOutCurve: Curves.linear,
+				child: AnimatedSwitcher(
+					duration: const Duration(milliseconds: 500),
+					reverseDuration: const Duration(milliseconds: 0),
 
-				transitionBuilder: (child, animation) => ScaleTransition(
-					scale: animation, child: child
+					switchInCurve: Curves.easeOutQuart,
+					switchOutCurve: Curves.linear,
+
+					transitionBuilder: (child, animation) => ScaleTransition(
+						scale: animation, child: child
+					),
+
+					child: _switch
+						? Icon(_resourceData1, key: _dataKey1,
+							size: widget.iconSize, shadows: shadows)
+						: Icon(_resourceData0, key: _dataKey0,
+							size: widget.iconSize, shadows: shadows),
 				),
-
-				child: _switch
-					? Icon(_resourceData1, key: _dataKey1,
-						size: widget.iconSize, shadows: shadows)
-					: Icon(_resourceData0, key: _dataKey0,
-						size: widget.iconSize, shadows: shadows),
 			),
 		);
 	}
