@@ -44,18 +44,21 @@ class ResourceDisplay extends StatelessWidget
 		assert(iconSize > 0, "Icon size must be bigger than zero.");
 
 		// Building tree of the widgets
-		return Container(
-			width: dispSize,
-			height: dispSize,
-
+		return DecoratedBox(
 			decoration: BoxDecoration(
 				color: scheme.primaryFixed,
 				borderRadius: borderRadius,
 				boxShadow: shadows
 			),
 
-			child: Icon(
-				data, size: iconSize, shadows: shadows
+			child: SizedBox(
+				width: dispSize,
+				height: dispSize,
+
+				child: Icon(data,
+					size: iconSize,
+					shadows: shadows
+				),
 			),
 		);
 	}
