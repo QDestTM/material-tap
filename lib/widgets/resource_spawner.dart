@@ -141,16 +141,19 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 		final scheme = Theme.of(context).colorScheme;
 
 		// Building tree of widgets
-		return Container(
-			width: widget.size,
+		return ColoredBox(
 			color: scheme.secondaryFixedDim,
 
-			child: Stack(
-				children: <ResourceSpawnerItem>
-				[
-					..._remvQueue,
-					..._itemQueue
-				],
+			child: SizedBox(
+				width: widget.size,
+
+				child: Stack(
+					children: <ResourceSpawnerItem>
+					[
+						..._remvQueue,
+						..._itemQueue
+					],
+				),
 			),
 		);
 	}
