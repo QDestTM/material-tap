@@ -83,8 +83,10 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 			_itemQueue.removeFirst();
 
 			// Set negative offset value for remove animation
+			const offset = -ResourceDisplay.defaultDispSize;
+
 			_remvQueue.addFirst(
-				item.withOffset(-ResourceDisplay.defaultDispSize)
+				item.withRemoveCallback(_onItemRemove, offset)
 			);
 
 			_updateItemsOffset();
@@ -104,8 +106,7 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 			size: widget.size,
 			data: data,
 
-			offset: _getOffsetAt(index),
-			itemRemove: _onItemRemove,
+			offset: _getOffsetAt(index)
 		);
 	}
 

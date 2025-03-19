@@ -8,7 +8,7 @@ class ResourceSpawnerItem extends StatelessWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final void Function() itemRemove;
+	final void Function()? itemRemove;
 
 	final ResourceData data;
 	final double offset;
@@ -21,12 +21,27 @@ class ResourceSpawnerItem extends StatelessWidget
 		required this.size,
 		required this.data,
 
-		required this.itemRemove,
+		this.itemRemove
 	});
 
 	// # ----------------------------------------------------------------------------------------------------<
 
 	ResourceSpawnerItem withOffset(double offset)
+	{
+		return ResourceSpawnerItem(
+			key: key,
+
+			size: size,
+			data: data,
+
+			itemRemove: itemRemove,
+			offset: offset,
+		);
+	}
+
+
+	ResourceSpawnerItem withRemoveCallback(
+		void Function() itemRemove, double offset)
 	{
 		return ResourceSpawnerItem(
 			key: key,
