@@ -1,6 +1,9 @@
 import 'package:material_tap/types.dart';
 import 'package:flutter/material.dart';
 
+// Title of app
+const String appTitle = 'Material Tap';
+
 // Main seed color for whole app
 const Color seedColor = Colors.teal;
 

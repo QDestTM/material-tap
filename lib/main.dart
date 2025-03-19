@@ -27,9 +27,7 @@ class MaterialTap extends StatelessWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	const MaterialTap({
-		super.key
-	});
+	const MaterialTap({super.key});
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -40,7 +38,7 @@ class MaterialTap extends StatelessWidget
 		final theme = ThemeData(colorScheme: scheme);
 
 		return MaterialApp(
-			title: 'Material Tap', theme: theme,
+			title: appTitle, theme: theme,
 			debugShowCheckedModeBanner: false,
 
 			home: const HomePage(),
