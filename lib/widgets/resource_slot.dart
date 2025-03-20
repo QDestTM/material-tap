@@ -33,11 +33,11 @@ class ResourceSlot extends StatefulWidget
 
 class ResourceSlotState extends State<ResourceSlot>
 {
-	static const shadows = <BoxShadow>
+	static const iconShadows = <BoxShadow>
 	[
 		BoxShadow(
-			color: Color.fromARGB(124, 0, 0, 0),
-			blurRadius: 3, spreadRadius: 2,
+			color: Color.fromARGB(164, 0, 0, 0),
+			blurRadius: 4, offset: Offset(0, 2)
 		)
 	];
 
@@ -101,12 +101,18 @@ class ResourceSlotState extends State<ResourceSlot>
 			decoration: BoxDecoration(
 				color: scheme.secondaryFixed,
 				borderRadius: borderRadius,
-				boxShadow: shadows
+
+				boxShadow: const <BoxShadow>
+				[
+					BoxShadow(
+						color: Color.fromARGB(124, 0, 0, 0),
+						blurRadius: 3, spreadRadius: 2,
+					)
+				],
 			),
 
-			child: SizedBox(
-				width: widget.slotSize,
-				height: widget.slotSize,
+			child: SizedBox.square(
+				dimension: widget.slotSize,
 
 				child: AnimatedSwitcher(
 					duration: const Duration(milliseconds: 500),
@@ -121,9 +127,9 @@ class ResourceSlotState extends State<ResourceSlot>
 
 					child: _switch
 						? Icon(_resourceData1, key: _dataKey1,
-							size: widget.iconSize, shadows: shadows)
+							size: widget.iconSize, shadows: iconShadows)
 						: Icon(_resourceData0, key: _dataKey0,
-							size: widget.iconSize, shadows: shadows),
+							size: widget.iconSize, shadows: iconShadows),
 				),
 			),
 		);

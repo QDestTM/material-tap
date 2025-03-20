@@ -59,8 +59,8 @@ class ResourceDisplay extends StatelessWidget
 					shadows: const <BoxShadow>
 					[
 						BoxShadow(
-							color: Color.fromARGB(255, 0, 0, 0),
-							blurRadius: 6, offset: Offset(1, 1)
+							color: Color.fromARGB(164, 0, 0, 0),
+							blurRadius: 4, offset: Offset(0, 2)
 						)
 					]
 				),
