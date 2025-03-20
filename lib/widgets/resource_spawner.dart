@@ -39,6 +39,7 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 	final _itemQueue = Queue<ResourceSpawnerItem>();
 	final _remvQueue = Queue<ResourceSpawnerItem>();
 
+
 	ResourceData get pending => _itemQueue.isEmpty
 		? Icons.dangerous : _itemQueue.first.data;
 

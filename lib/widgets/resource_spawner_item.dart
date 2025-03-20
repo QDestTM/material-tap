@@ -8,7 +8,7 @@ class ResourceSpawnerItem extends StatelessWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final void Function()? itemRemove;
+	final void Function()? onRemove;
 
 	final ResourceData data;
 	final double offset;
@@ -21,7 +21,7 @@ class ResourceSpawnerItem extends StatelessWidget
 		required this.size,
 		required this.data,
 
-		this.itemRemove
+		this.onRemove
 	});
 
 	// # ----------------------------------------------------------------------------------------------------<
@@ -34,14 +34,14 @@ class ResourceSpawnerItem extends StatelessWidget
 			size: size,
 			data: data,
 
-			itemRemove: itemRemove,
+			onRemove: onRemove,
 			offset: offset,
 		);
 	}
 
 
 	ResourceSpawnerItem withRemoveCallback(
-		void Function() itemRemove, double offset)
+		void Function() onRemove, double offset)
 	{
 		return ResourceSpawnerItem(
 			key: key,
@@ -49,7 +49,7 @@ class ResourceSpawnerItem extends StatelessWidget
 			size: size,
 			data: data,
 
-			itemRemove: itemRemove,
+			onRemove: onRemove,
 			offset: offset,
 		);
 	}
@@ -63,7 +63,7 @@ class ResourceSpawnerItem extends StatelessWidget
 		return AnimatedPositioned(
 			top: offset,
 
-			onEnd: itemRemove,
+			onEnd: onRemove,
 			width: size,
 
 			duration: const Duration(milliseconds: 800),
