@@ -47,7 +47,6 @@ class ResourceSenderItem extends StatelessWidget
 		// Building tree of widgets
 		return AnimatedAlign(
 			duration: const Duration(milliseconds: 800),
-			curve: Curves.easeIn,
 
 			onEnd: () {
 				onResource(displayData); onRemove();
