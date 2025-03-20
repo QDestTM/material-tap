@@ -5,20 +5,16 @@ import 'package:flutter/material.dart';
 /// A stateful widget that displays a resource icon with smooth animated transitions.
 class ResourceSlot extends StatefulWidget
 {
-	static const double defaultSlotSize = 100.0;
 	static const double defaultIconSize = 64.0;
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
 	final ResourceData data;
-
-	final double slotSize;
 	final double iconSize;
 
 	const ResourceSlot({
 		super.key,
 		this.data = Icons.dangerous,
-		this.slotSize = defaultSlotSize,
 		this.iconSize = defaultIconSize
 	});
 
@@ -40,8 +36,6 @@ class ResourceSlotState extends State<ResourceSlot>
 			blurRadius: 4, offset: Offset(0, 2)
 		)
 	];
-
-	static final borderRadius = BorderRadius.circular(32.0);
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
@@ -90,48 +84,26 @@ class ResourceSlotState extends State<ResourceSlot>
 	@override
 	Widget build(BuildContext context)
 	{
-		final scheme = Theme.of(context).colorScheme;
-
 		// Validate slot size and icon size
-		assert(widget.slotSize > 0, "Slot size must be bigger than zero.");
 		assert(widget.iconSize > 0, "Icon size must be bigger than zero.");
 
 		// Building tree of the widgets
-		return DecoratedBox(
-			decoration: BoxDecoration(
-				color: scheme.secondaryFixed,
-				borderRadius: borderRadius,
+		return AnimatedSwitcher(
+			duration: const Duration(milliseconds: 500),
+			reverseDuration: const Duration(milliseconds: 0),
 
-				boxShadow: const <BoxShadow>
-				[
-					BoxShadow(
-						color: Color.fromARGB(124, 0, 0, 0),
-						blurRadius: 3, spreadRadius: 2,
-					)
-				],
+			switchInCurve: Curves.easeOutQuart,
+			switchOutCurve: Curves.linear,
+
+			transitionBuilder: (child, animation) => ScaleTransition(
+				scale: animation, child: child
 			),
 
-			child: SizedBox.square(
-				dimension: widget.slotSize,
-
-				child: AnimatedSwitcher(
-					duration: const Duration(milliseconds: 500),
-					reverseDuration: const Duration(milliseconds: 0),
-
-					switchInCurve: Curves.easeOutQuart,
-					switchOutCurve: Curves.linear,
-
-					transitionBuilder: (child, animation) => ScaleTransition(
-						scale: animation, child: child
-					),
-
-					child: _switch
-						? Icon(_resourceData1, key: _dataKey1,
-							size: widget.iconSize, shadows: iconShadows)
-						: Icon(_resourceData0, key: _dataKey0,
-							size: widget.iconSize, shadows: iconShadows),
-				),
-			),
+			child: _switch
+				? Icon(_resourceData1, key: _dataKey1,
+					size: widget.iconSize, shadows: iconShadows)
+				: Icon(_resourceData0, key: _dataKey0,
+					size: widget.iconSize, shadows: iconShadows),
 		);
 	}
 
