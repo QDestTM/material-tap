@@ -8,8 +8,8 @@ class ResourceSenderItem extends StatelessWidget
 {
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final void Function(ResourceData data) checkResource;
-	final void Function() removeItem;
+	final void Function(ResourceData data) onResource;
+	final void Function() onRemove;
 
 	final Alignment displayAlignment;
 	final ResourceData displayData;
@@ -20,8 +20,8 @@ class ResourceSenderItem extends StatelessWidget
 		required this.displayAlignment,
 		required this.displayData,
 
-		required this.checkResource,
-		required this.removeItem
+		required this.onResource,
+		required this.onRemove
 	});
 
 	// # ----------------------------------------------------------------------------------------------------<
@@ -34,8 +34,8 @@ class ResourceSenderItem extends StatelessWidget
 			displayAlignment: alignment,
 			displayData: data,
 
-			checkResource: checkResource,
-			removeItem: removeItem
+			onResource: onResource,
+			onRemove: onRemove
 		);
 	}
 
@@ -47,10 +47,10 @@ class ResourceSenderItem extends StatelessWidget
 		// Building tree of widgets
 		return AnimatedAlign(
 			duration: const Duration(milliseconds: 800),
-			curve: Curves.easeOutQuart,
+			curve: Curves.easeIn,
 
 			onEnd: () {
-				checkResource(displayData); removeItem();
+				onResource(displayData); onRemove();
 			},
 
 			alignment: displayAlignment,

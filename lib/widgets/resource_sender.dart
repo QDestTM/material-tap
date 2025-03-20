@@ -11,13 +11,16 @@ class ResourceSender extends StatefulWidget
 
 	// # ----------------------------------------------------------------------------------------------------<
 
+	final void Function(ResourceData data) onResource;
+
 	final AxisDirection direction;
 	final double size;
 
 	const ResourceSender({
 		super.key,
 		this.size = defaultSize,
-		required this.direction
+		required this.direction,
+		required this.onResource
 	});
 
 
@@ -60,6 +63,7 @@ class ResourceSenderState extends State<ResourceSender>
 	final _itemsQueue = Queue<ResourceSenderItem>();
 	late ResourceSenderItem _pendingItem;
 
+
 	Alignment get startAlignment
 		=> startAlignmentMap[widget.direction]!;
 
@@ -77,7 +81,7 @@ class ResourceSenderState extends State<ResourceSender>
 		_pendingItem = _createItem();
 	}
 
-	// ------------------------------------------------------------------------------------------------------<
+	// @ ----------------------------------------------------------------------------------------------------<
 
 	void send(ResourceData data)
 	{
@@ -101,20 +105,20 @@ class ResourceSenderState extends State<ResourceSender>
 			displayAlignment: startAlignment,
 			displayData: Icons.dangerous,
 
-			checkResource: _onCheckResource,
-			removeItem: _onRemoveItem,
+			onResource: _onItemResource,
+			onRemove: _onItemRemove,
 		);
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _onCheckResource(ResourceData data)
+	void _onItemResource(ResourceData data)
 	{
-		// TODO: Implement this later.
+		widget.onResource(data);
 	}
 
 
-	void _onRemoveItem()
+	void _onItemRemove()
 	{
 		setState(() {
 			_itemsQueue.removeFirst();
