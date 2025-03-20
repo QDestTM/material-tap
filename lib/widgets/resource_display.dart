@@ -5,16 +5,8 @@ import 'package:flutter/material.dart';
 /// A stateless widget that displays an icon representing a resource.
 class ResourceDisplay extends StatelessWidget
 {
-	static const double defaultIconSize = defaultDispSize / 2.0;
+	static const double defaultIconSize = defaultDispSize / 1.5;
 	static const double defaultDispSize = 64.0;
-
-	static const shadows = <BoxShadow>
-	[
-		BoxShadow(
-			color: Color.fromARGB(124, 0, 0, 0),
-			blurRadius: 3, spreadRadius: 2,
-		),
-	];
 
 	static final borderRadius = BorderRadius.circular(10.0);
 
@@ -48,16 +40,29 @@ class ResourceDisplay extends StatelessWidget
 			decoration: BoxDecoration(
 				color: scheme.primaryFixed,
 				borderRadius: borderRadius,
-				boxShadow: shadows
+
+				boxShadow: const <BoxShadow>
+				[
+					BoxShadow(
+						color: Color.fromARGB(124, 0, 0, 0),
+						blurRadius: 3, spreadRadius: 2,
+					),
+				],
 			),
 
-			child: SizedBox(
-				width: dispSize,
-				height: dispSize,
+			child: SizedBox.square(
+				dimension: dispSize,
 
-				child: Icon(data,
-					size: iconSize,
-					shadows: shadows
+				child: Icon(
+					data, size: iconSize,
+
+					shadows: const <BoxShadow>
+					[
+						BoxShadow(
+							color: Color.fromARGB(255, 0, 0, 0),
+							blurRadius: 6, offset: Offset(1, 1)
+						)
+					]
 				),
 			),
 		);
