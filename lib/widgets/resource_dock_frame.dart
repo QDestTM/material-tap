@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:math';
 
 
-class ResourceDockBase extends StatelessWidget
+class ResourceDockFrame extends StatelessWidget
 {
 	static const double defaultBodySize = 86.0;
 
@@ -67,7 +67,7 @@ class ResourceDockBase extends StatelessWidget
 	final double bodySize;
 	final Widget? child;
 
-	const ResourceDockBase({
+	const ResourceDockFrame({
 		super.key,
 		required this.direction,
 		this.bodySize = defaultBodySize,
