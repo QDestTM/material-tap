@@ -96,6 +96,13 @@ class ResourceSpawnerState extends State<ResourceSpawner>
 		return item.data;
 	}
 
+
+	List<ResourceData> take(int count)
+	{
+		return _itemQueue.take(count)
+			.map((item) => item.data).toList();
+	}
+
 	// ------------------------------------------------------------------------------------------------------<
 
 	ResourceSpawnerItem _createItem(ResourceData data, int index)
