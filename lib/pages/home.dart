@@ -487,7 +487,7 @@ class HomePageState extends State<HomePage>
 
 						// Middle move action button
 						_buildBottomNavBarActionButton(
-							context, ResourcePathSide.up, Icons.delete
+							context, ResourcePathSide.up, Icons.arrow_upward
 						),
 
 						// Right move action button
