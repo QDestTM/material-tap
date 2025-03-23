@@ -1,8 +1,14 @@
+import 'package:material_tap/widgets/resource_dock_frame.dart';
+import 'package:material_tap/enums/resource_path_side.dart';
 import 'package:material_tap/widgets/resource_spawner.dart';
 import 'package:material_tap/widgets/resource_sender.dart';
+import 'package:material_tap/widgets/resource_dock.dart';
 import 'package:material_tap/widgets/resource_slot.dart';
+import 'package:material_tap/widgets/score_display.dart';
+import 'package:material_tap/models/score_state.dart';
 import 'package:material_tap/types.dart';
 import 'package:material_tap/const.dart';
+import 'package:provider/provider.dart';
 
 import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:flutter/material.dart';
@@ -26,47 +32,33 @@ class HomePage extends StatefulWidget
 }
 
 
-class HomePageState extends State<HomePage> with WidgetsBindingObserver
+class HomePageState extends State<HomePage>
+	with WidgetsBindingObserver
 {
-	static const int initialResourcesCount = 12;
+	static const int initialResourcesCount = 6;
 	static const int tapTimeout = 200;
+
+	static const int scoreErrorMultiplier = 2;
+	static const int scoreChangeValue = 10;
 
 	// Constants for bottom nav bar components
 	static const double bottomNavBtnIconsSize = 48.0;
 	static const double bottomNavBarHeight = 64.0;
 
-	static const bottomNavBtnIconShadows = <BoxShadow>
-	[
-		BoxShadow(
-			color: Color.fromARGB(124, 0, 0, 0),
-			spreadRadius: 4,
-			blurRadius: 4,
-			offset: Offset(1, 1)
-		)
-	];
-
-	static const bottomNavBarShadows = <BoxShadow>
-	[
-		BoxShadow(
-			color: Color.fromARGB(124, 0, 0, 0),
-			blurRadius: 3,
-			spreadRadius: 2,
-		)
-	];
-
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _resourceSpawner = GlobalKey<ResourceSpawnerState>();
-	final _resourceSlot = GlobalKey<ResourceSlotState>();
-
-	final _resourceSenderL = GlobalKey<ResourceSenderState>();
-	final _resourceSenderD = GlobalKey<ResourceSenderState>();
-	final _resourceSenderR = GlobalKey<ResourceSenderState>();
-
-	final _randomGenerator = Random();
+	late final Map<ResourcePathSide, GlobalKey<ResourceSenderState>> _resourceSendMap;
+	late final Map<ResourcePathSide, GlobalKey<ResourceDockState>> _resourceDockMap;
 
 	late final List<ResourceData> initialResources;
-	late bool _canTap = true;
+
+	final _resourceCentralSlot = GlobalKey<ResourceSlotState>();
+	final _resourceSpawner = GlobalKey<ResourceSpawnerState>();
+
+	final _random = Random();
+	final scoreState = ScoreState();
+
+	late bool _canInteract = true;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -74,6 +66,19 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	void initState()
 	{
 		super.initState();
+
+		// Initializing maps
+		_resourceSendMap = {
+			ResourcePathSide.left  : GlobalKey<ResourceSenderState>(),
+			ResourcePathSide.up    : GlobalKey<ResourceSenderState>(),
+			ResourcePathSide.right : GlobalKey<ResourceSenderState>(),
+		};
+
+		_resourceDockMap = {
+			ResourcePathSide.left  : GlobalKey<ResourceDockState>(),
+			ResourcePathSide.up    : GlobalKey<ResourceDockState>(),
+			ResourcePathSide.right : GlobalKey<ResourceDockState>(),
+		};
 
 		// Creating list with initial resources
 		initialResources = List.generate(
@@ -114,52 +119,40 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _handlePressL()
+	void _handleInput(ResourcePathSide side)
 	{
-		if ( !_canTap ) return;
-		_timeoutTap();
+		if ( !_canInteract ) return;
+		_timeoutInteraction();
 
-		final resource = _rotateSpawner();
-		_resourceSenderL.currentState?.send(resource);
-	}
+		// Getting resource sender state
+		var senderGlobalKey = _resourceSendMap[side]!;
+		var senderState = senderGlobalKey.currentState;
 
-
-	void _handlePressD()
-	{
-		if ( !_canTap ) return;
-		_timeoutTap();
-
-		final resource = _rotateSpawner();
-		_resourceSenderD.currentState?.send(resource);
-	}
-
-
-	void _handlePressR()
-	{
-		if ( !_canTap ) return;
-		_timeoutTap();
-
-		final resource = _rotateSpawner();
-		_resourceSenderR.currentState?.send(resource);
-	}
-
-
-	void _handleDragEndV(DragEndDetails details)
-	{
-		if ( details.primaryVelocity! < 0 ) {
-			_handlePressD();
+		if ( senderState != null && !senderState.hasSended )
+		{
+			final resource = _rotateSpawner();
+			senderState.send(resource);
 		}
 	}
 
 
-	void _handleDragEndH(DragEndDetails details)
+	void _handleResourceReceive(ResourcePathSide side, ResourceData data)
 	{
-		if ( details.primaryVelocity! > 0 ) {
-			_handlePressR();
-		} else
-		if ( details.primaryVelocity! < 0 ) {
-			_handlePressL();
+		var dockGlobalKey = _resourceDockMap[side]!;
+		var dockState = dockGlobalKey.currentState;
+
+		if ( dockState == null ) return;
+		final bool isValid = dockState.put(data);
+
+		// Manage points
+		if ( isValid ) {
+			scoreState.change(scoreChangeValue);
+		} else {
+			scoreState.change(scoreChangeValue * -scoreErrorMultiplier);
 		}
+
+		// Distribute resources between docks
+		_distributeDockResources();
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -167,7 +160,7 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	ResourceData _rotateSpawner()
 	{
 		final spawnerState = _resourceSpawner.currentState;
-		final slotState = _resourceSlot.currentState;
+		final slotState = _resourceCentralSlot.currentState;
 
 		// Null check for states
 		if ( slotState == null || spawnerState == null )
@@ -190,20 +183,226 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 	ResourceData _getRandomResource()
 	{
 		final length = resourceDataSet.length;
-		final index = _randomGenerator.nextInt(length);
+		final index = _random.nextInt(length);
 
 		return resourceDataSet[index];
 	}
 
+
+	void _distributeDockResources()
+	{
+		final spawnerState = _resourceSpawner.currentState;
+		if ( spawnerState == null ) return;
+
+		// Get sides where senders are available to use
+		final sendSides = ResourcePathSide.values.where((side)
+		{
+			final state = _resourceSendMap[side]!.currentState;
+			return state != null && !state.hasSended;
+		});
+
+		if ( sendSides.isEmpty ) return;
+
+		// Select random dock and replace resource
+		final sidesList = sendSides.toList();
+
+		final sideIndex = _random.nextInt(sidesList.length);
+		final side = sidesList[sideIndex];
+
+		_resourceDockMap[side]!.currentState?.set(spawnerState.pending);
+	}
+
 	// ------------------------------------------------------------------------------------------------------<
 
-	void _timeoutTap()
+	void _timeoutInteraction()
 	{
-		_canTap = false;
+		_canInteract = false;
 
 		Timer(
 			const Duration(milliseconds: tapTimeout),
-			() { _canTap = true; }
+			() { _canInteract = true; }
+		);
+	}
+
+	// ------------------------------------------------------------------------------------------------------<
+
+	Widget _buildBodyVerticalComponents()
+	{
+		// Building tree of widgets
+		return Column(
+			children: <Expanded>
+			[
+				Expanded(
+					child: _buildResourceSender(ResourcePathSide.up)
+				),
+
+				Expanded(
+					child: ResourceSpawner(
+						key: _resourceSpawner,
+						initialData: initialResources,
+					),
+				),
+			],
+		);
+	}
+
+
+	Widget _buildBodyHorizotalComponents()
+	{
+		// Building tree of widgets
+		return Row(
+			children: <Expanded>
+			[
+				Expanded(
+					child: _buildResourceSender(ResourcePathSide.left),
+				),
+
+				Expanded(
+					child: _buildResourceSender(ResourcePathSide.right),
+				)
+			],
+		);
+	}
+
+
+	Widget _buildBodyVerticalResourceDocks()
+	{
+		// Building tree of widgets
+		return Column(
+			mainAxisAlignment: MainAxisAlignment.spaceBetween,
+			crossAxisAlignment: CrossAxisAlignment.center,
+
+			children: <Widget>
+			[
+				// Upper resource dock
+				_buildResourceDock(ResourcePathSide.up),
+
+				// Spawner resource dock
+				ResourceDockFrame(
+					direction: AxisDirection.down,
+
+					child: const Icon(Icons.eject,
+						size: ResourceDockFrame.defaultBodySize,
+
+						shadows: <BoxShadow>
+						[
+							BoxShadow(
+								color: Color.fromARGB(124, 0, 0, 0),
+								blurRadius: 4, offset: Offset(0, 2)
+							)
+						],
+					),
+				),
+			],
+		);
+	}
+
+
+	Widget _buildBodyHorizontalResourceDocks()
+	{
+		// Building tree of widgets
+		return Row(
+			mainAxisAlignment: MainAxisAlignment.spaceBetween,
+			crossAxisAlignment: CrossAxisAlignment.center,
+
+			children: <ResourceDock>
+			[
+				_buildResourceDock(ResourcePathSide.left),
+				_buildResourceDock(ResourcePathSide.right),
+			],
+		);
+	}
+
+
+	Widget _buildBodyCentralResourceDisplay(BuildContext context)
+	{
+		final scheme = Theme.of(context).colorScheme;
+
+		// Building tree of widgets
+		return Center(
+			child: DecoratedBox(
+				decoration: BoxDecoration(
+					color: scheme.secondaryFixed,
+					borderRadius: BorderRadius.circular(32.0),
+
+					boxShadow: const <BoxShadow>
+					[
+						BoxShadow(
+							color: Color.fromARGB(124, 0, 0, 0),
+							blurRadius: 3, spreadRadius: 2,
+						)
+					],
+				),
+
+				child: SizedBox.square(
+					dimension: 100,
+
+					child: ResourceSlot(
+						key: _resourceCentralSlot,
+						data: initialResources.first,
+					),
+				)
+			),
+		);
+	}
+
+	// ------------------------------------------------------------------------------------------------------<
+
+	Widget _buildBottomNavBarActionButton(
+		BuildContext context, ResourcePathSide side, IconData icon)
+	{
+		final scheme = Theme.of(context).colorScheme;
+
+		// Building tree of widgets
+		return Expanded(
+			child: IconButton(
+				highlightColor: scheme.secondaryFixedDim,
+				onPressed: () => _handleInput(side),
+
+				icon: Icon(icon,
+					size: bottomNavBtnIconsSize,
+					shadows: const <BoxShadow>
+					[
+						BoxShadow(
+							color: Color.fromARGB(124, 0, 0, 0),
+							blurRadius: 4, offset: Offset(0, 2)
+						)
+					]
+				),
+			),
+		);
+	}
+
+
+	ResourceSender _buildResourceSender(ResourcePathSide side)
+	{
+		// Building tree of widgets
+		return ResourceSender(
+			key: _resourceSendMap[side],
+			side: side,
+
+			onResource: (data) {
+				_handleResourceReceive(side, data);
+			},
+		);
+	}
+
+
+	ResourceDock _buildResourceDock(ResourcePathSide side)
+	{
+		late final ResourceData data;
+
+		if ( side == ResourcePathSide.up ) {
+			data = initialResources.first;
+		} else {
+			final index = _random.nextInt(initialResources.length);
+			data = initialResources[index];
+		}
+
+		// Building tree of widgets
+		return ResourceDock(
+			key: _resourceDockMap[side],
+			data: data, side: side,
 		);
 	}
 
@@ -217,84 +416,58 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 		// Building tree of widgets
 		return Scaffold(
 			appBar: AppBar(
-				key: GlobalKey(debugLabel: "Upper App Bar"),
 				backgroundColor: scheme.secondaryFixed,
 
-				shadowColor: Colors.black,
-				elevation: 8,
+				flexibleSpace: ChangeNotifierProvider.value(
+					value: scoreState, child: const ScoreDisplay(),
+				),
 			),
 
 			body: Stack(
-				key: GlobalKey(debugLabel: "App Body"),
+				alignment: Alignment.center,
+				fit: StackFit.expand,
 
 				children: <Widget>
 				[
-					// Vertical components
-					Center(
-						child: Column(
-							children: <Expanded>
-							[
-								Expanded(
-									child: ResourceSender(
-										key: _resourceSenderD,
-										direction: AxisDirection.up
-									),
-								),
+					// Build resource spawner and resource senders
+					_buildBodyVerticalComponents(),
+					_buildBodyHorizotalComponents(),
 
-								Expanded(
-									child: ResourceSpawner(
-										key: _resourceSpawner,
-										initialData: initialResources,
-									),
-								),
-							],
-						),
-					),
+					// Build resource docks and corresponding receivers
+					_buildBodyVerticalResourceDocks(),
+					_buildBodyHorizontalResourceDocks(),
 
-					// Horizontal components
-					Center(
-						child: Row(
-							children: <Expanded>
-							[
-								Expanded(
-									child: ResourceSender(
-										key: _resourceSenderL,
-										direction: AxisDirection.left,
-									),
-								),
+					// Central slot to display current resource
+					_buildBodyCentralResourceDisplay(context),
 
-								Expanded(
-									child: ResourceSender(
-										key: _resourceSenderR,
-										direction: AxisDirection.right,
-									),
-								)
-							],
-						),
-					),
-
-					// Resource slot component
-					Center(
-						child: ResourceSlot(
-							key: _resourceSlot,
-							data: initialResources.first,
-						),
-					),
-
+					// Gesture detector for controlls by swipe
 					GestureDetector(
-						onVerticalDragEnd: _handleDragEndV,
-						onHorizontalDragEnd: _handleDragEndH,
+						onVerticalDragEnd: (details)
+						{
+							if ( details.primaryVelocity! < 0 )
+							{
+								_handleInput(ResourcePathSide.up);
+							}
+						},
+
+						onHorizontalDragEnd: (details)
+						{
+							if ( details.primaryVelocity! > 0 ) {
+								_handleInput(ResourcePathSide.right);
+							} else
+							if ( details.primaryVelocity! < 0 ) {
+								_handleInput(ResourcePathSide.left);
+							}
+						},
 					)
 				],
 			),
 
 			bottomNavigationBar: Container(
-				key: GlobalKey(debugLabel: "Bottom Nav Bar"),
 				height: bottomNavBarHeight,
 
 				decoration: BoxDecoration(
 					color: scheme.secondaryFixed,
-					boxShadow: bottomNavBarShadows,
 
 					borderRadius: const BorderRadius.only(
 						topLeft: Radius.circular(42.0),
@@ -308,52 +481,19 @@ class HomePageState extends State<HomePage> with WidgetsBindingObserver
 					children: <Widget>
 					[
 						// Left move action button
-						Expanded(
-							flex: 1,
-
-							child: IconButton(
-								onPressed: _handlePressL,
-								highlightColor: scheme.secondaryFixedDim,
-
-								tooltip: "Move Left",
-								icon: const Icon(
-									shadows: bottomNavBtnIconShadows,
-									Icons.turn_left, size: bottomNavBtnIconsSize
-								),
-							),
+						_buildBottomNavBarActionButton(
+							context, ResourcePathSide.left, Icons.turn_left
 						),
 
 						// Middle move action button
-						Expanded(
-							flex: 1,
-
-							child: IconButton(
-								onPressed: _handlePressD,
-								highlightColor: scheme.secondaryFixedDim,
-
-								tooltip: "Move Delete",
-								icon: const Icon(
-									shadows: bottomNavBtnIconShadows,
-									Icons.delete, size: bottomNavBtnIconsSize
-								),
-							),
+						_buildBottomNavBarActionButton(
+							context, ResourcePathSide.up, Icons.delete
 						),
 
 						// Right move action button
-						Expanded(
-							flex: 1,
-
-							child: IconButton(
-								onPressed: _handlePressR,
-								highlightColor: scheme.secondaryFixedDim,
-
-								tooltip: "Move Right",
-								icon: const Icon(
-									shadows: bottomNavBtnIconShadows,
-									Icons.turn_right, size: bottomNavBtnIconsSize
-								),
-							),
-						)
+						_buildBottomNavBarActionButton(
+							context, ResourcePathSide.right, Icons.turn_right
+						),
 					],
 				),
 			),
