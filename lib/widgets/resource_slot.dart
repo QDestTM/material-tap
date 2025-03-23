@@ -68,6 +68,13 @@ class ResourceSlotState extends State<ResourceSlot>
 
 	void set(ResourceData data)
 	{
+		ResourceData current = _switch
+			? _resourceData1
+			: _resourceData0;
+
+		if ( current == data ) return;
+
+		// Updating state of widget
 		setState(() {
 			_switch = !_switch;
 
