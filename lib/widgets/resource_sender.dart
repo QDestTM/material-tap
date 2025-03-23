@@ -1,8 +1,8 @@
-import 'package:material_tap/widgets/resource_sender_item.dart';
+import 'package:material_tap/enums/resource_path_side.dart';
+import 'package:material_tap/widgets/resource_display.dart';
 import 'package:material_tap/types.dart';
 
 import 'package:flutter/material.dart';
-import 'dart:collection';
 
 
 class ResourceSender extends StatefulWidget
@@ -13,22 +13,16 @@ class ResourceSender extends StatefulWidget
 
 	final void Function(ResourceData data) onResource;
 
-	final AxisDirection direction;
+	final ResourcePathSide side;
 	final double size;
 
 	const ResourceSender({
 		super.key,
 		this.size = defaultSize,
-		required this.direction,
+
+		required this.side,
 		required this.onResource
 	});
-
-
-	bool get isHorizontal =>
-		direction == AxisDirection.left || direction == AxisDirection.right;
-
-	bool get isVertical =>
-		direction == AxisDirection.up || direction == AxisDirection.down;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -41,34 +35,34 @@ class ResourceSender extends StatefulWidget
 
 class ResourceSenderState extends State<ResourceSender>
 {
-	// Maps for alignments based on direction
-	static const startAlignmentMap = <AxisDirection, Alignment>
+	// Maps for alignments based on side
+	static const startAlignmentMap = <ResourcePathSide, Alignment>
 	{
-		AxisDirection.up    : Alignment.bottomCenter,
-		AxisDirection.right : Alignment.centerLeft  ,
-		AxisDirection.down  : Alignment.topCenter   ,
-		AxisDirection.left  : Alignment.centerRight ,
+		ResourcePathSide.up    : Alignment.bottomCenter,
+		ResourcePathSide.right : Alignment.centerLeft  ,
+		ResourcePathSide.left  : Alignment.centerRight ,
 	};
 
-	static const endAlignmentMap = <AxisDirection, Alignment>
+	static const endAlignmentMap = <ResourcePathSide, Alignment>
 	{
-		AxisDirection.up    : Alignment.topCenter   ,
-		AxisDirection.right : Alignment.centerRight ,
-		AxisDirection.down  : Alignment.bottomCenter,
-		AxisDirection.left  : Alignment.centerLeft  ,
+		ResourcePathSide.up    : Alignment.topCenter  ,
+		ResourcePathSide.right : Alignment.centerRight,
+		ResourcePathSide.left  : Alignment.centerLeft ,
 	};
 
 	// ^ ----------------------------------------------------------------------------------------------------<
 
-	final _itemsQueue = Queue<ResourceSenderItem>();
-	late ResourceSenderItem _pendingItem;
+	late AnimatedAlign? _sendedItem;
+	late AnimatedAlign _pendingItem;
 
 
 	Alignment get startAlignment
-		=> startAlignmentMap[widget.direction]!;
+		=> startAlignmentMap[widget.side]!;
 
 	Alignment get endAlignment
-		=> endAlignmentMap[widget.direction]!;
+		=> endAlignmentMap[widget.side]!;
+
+	bool get hasSended => _sendedItem != null;
 
 	// # ----------------------------------------------------------------------------------------------------<
 
@@ -77,8 +71,9 @@ class ResourceSenderState extends State<ResourceSender>
 	{
 		super.initState();
 
-		// Creating initial pending item
-		_pendingItem = _createItem();
+		// Initializing items instances
+		_pendingItem = createItem();
+		_sendedItem = null;
 	}
 
 	// @ ----------------------------------------------------------------------------------------------------<
@@ -86,43 +81,43 @@ class ResourceSenderState extends State<ResourceSender>
 	void send(ResourceData data)
 	{
 		setState(() {
-			final sended = _pendingItem
-				.sended(endAlignment, data);
+			_sendedItem = createItem(
+				data: data,
 
-			_itemsQueue.addLast(sended);
-			_pendingItem = _createItem();
+				key: _pendingItem.key,
+				alignment: endAlignment,
+			);
+
+			_pendingItem = createItem();
 		});
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
 
-	ResourceSenderItem _createItem()
+	AnimatedAlign createItem({
+		Alignment? alignment, Key? key, ResourceData? data })
 	{
+		// Fixing possible null reference data
+		final fixedData = data ?? Icons.dangerous;
+
 		// Building tree of widgets
-		return ResourceSenderItem(
-			key: UniqueKey(),
+		return AnimatedAlign(
+			key: key ?? UniqueKey(),
 
-			displayAlignment: startAlignment,
-			displayData: Icons.dangerous,
+			duration: const Duration(milliseconds: 800),
+			alignment: alignment ?? startAlignment,
 
-			onResource: _onItemResource,
-			onRemove: _onItemRemove,
+			onEnd: ()
+			{
+				setState(() {
+					_sendedItem = null;
+				});
+
+				widget.onResource(fixedData);
+			},
+
+			child: ResourceDisplay(data: fixedData),
 		);
-	}
-
-	// ------------------------------------------------------------------------------------------------------<
-
-	void _onItemResource(ResourceData data)
-	{
-		widget.onResource(data);
-	}
-
-
-	void _onItemRemove()
-	{
-		setState(() {
-			_itemsQueue.removeFirst();
-		});
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
@@ -132,21 +127,26 @@ class ResourceSenderState extends State<ResourceSender>
 	{
 		final scheme = Theme.of(context).colorScheme;
 
+		// Creating list of widgets for stack
+		late final List<AnimatedAlign> children;
+
+		if ( _sendedItem != null ) {
+			children = [_pendingItem, _sendedItem!];
+		} else {
+			children = [_pendingItem];
+		}
+
 		// Building tree of widgets
 		return ColoredBox(
 			color: scheme.secondaryFixedDim,
 
 			child: ConstrainedBox(
-				constraints: widget.isVertical
+				constraints: widget.side == ResourcePathSide.up
 					? BoxConstraints.tightFor(width: widget.size)
 					: BoxConstraints.tightFor(height: widget.size),
 
 				child: Stack(
-					children: <ResourceSenderItem>
-					[
-						_pendingItem,
-						..._itemsQueue
-					],
+					children: children
 				),
 			),
 		);
