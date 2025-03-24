@@ -5,40 +5,12 @@
 			"color": "foldercolorizer.color_00cc99"
 		},
 		{
-			"folderPath": "material_tap\\windows\\",
-			"color": "foldercolorizer.color_336699"
-		},
-		{
 			"folderPath": "material_tap\\build\\",
 			"color": "foldercolorizer.color_cccc99"
 		},
 		{
-			"folderPath": "material_tap\\ios\\",
-			"color": "foldercolorizer.color_ccccff"
-		},
-		{
-			"folderPath": "material_tap\\linux\\",
-			"color": "foldercolorizer.color_cc9966"
-		},
-		{
-			"folderPath": "material_tap\\macos\\",
-			"color": "foldercolorizer.color_9999cc"
-		},
-		{
-			"folderPath": "material_tap\\test\\",
-			"color": "foldercolorizer.color_cc3300"
-		},
-		{
-			"folderPath": "material_tap\\web\\",
-			"color": "foldercolorizer.color_336699"
-		},
-		{
 			"folderPath": "material_tap\\lib\\",
 			"color": "foldercolorizer.color_99ccff"
-		},
-		{
-			"folderPath": "material_tap\\.idea\\",
-			"color": "foldercolorizer.color_666699"
 		},
 		{
 			"folderPath": "material_tap\\.vscode\\",
@@ -65,6 +37,10 @@
 			"color": "foldercolorizer.color_ff6666"
 		},
 		{
+			"folderPath": "material_tap\\devtools_options.yaml\\",
+			"color": "foldercolorizer.color_ff6666"
+		},
+		{
 			"folderPath": "material_tap.iml\\",
 			"color": "foldercolorizer.color_ff9966"
 		},
@@ -87,6 +63,10 @@
 		{
 			"folderPath": "material_tap\\.git\\",
 			"color": "foldercolorizer.color_666699"
+		},
+		{
+			"folderPath": "material_tap\\assets\\",
+			"color": "foldercolorizer.color_cc6666"
 		}
 	]
 }
