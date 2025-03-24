@@ -203,13 +203,47 @@ class HomePageState extends State<HomePage>
 
 		if ( sendSides.isEmpty ) return;
 
-		// Select random dock and replace resource
-		final sidesList = sendSides.toList();
+		// Check if it need to replace resource
+		for ( final side in sendSides )
+		{
+			final state = _resourceDockMap[side]!.currentState;
+			final data = state?.get() ?? Icons.dangerous;
 
-		final sideIndex = _random.nextInt(sidesList.length);
-		final side = sidesList[sideIndex];
+			if ( spawnerState.pending == data ) return;
+		}
 
-		_resourceDockMap[side]!.currentState?.set(spawnerState.pending);
+		// Select one or many docks and resplace resources
+		final replaceOne = _random.nextInt(2048) % 4 != 0;
+
+		if ( replaceOne )
+		{
+			final sideList = sendSides.toList();
+
+			// Select random single dock and replace resource
+			final index = _random.nextInt(sideList.length);
+			final side = sideList.elementAt(index);
+
+			_resourceDockMap[side]!.currentState?.set(spawnerState.pending);
+		}
+		else
+		{
+			final queue = spawnerState.take(
+				ResourcePathSide.values.length
+			);
+
+			// Distributing resources between available docks
+			for ( final side in sendSides )
+			{
+				final dockState = _resourceDockMap[side]!.currentState;
+				if ( dockState == null ) continue;
+
+				final index = _random.nextInt(queue.length);
+				final data = queue.elementAt(index);
+
+				dockState.set(data);
+				queue.remove(data);
+			}
+		}
 	}
 
 	// ------------------------------------------------------------------------------------------------------<
