@@ -103,8 +103,9 @@ class ResourceSenderState extends State<ResourceSender>
 		// Building tree of widgets
 		return AnimatedAlign(
 			key: key ?? UniqueKey(),
+			curve: Curves.easeInQuad,
 
-			duration: const Duration(milliseconds: 800),
+			duration: const Duration(milliseconds: 300),
 			alignment: alignment ?? startAlignment,
 
 			onEnd: ()
