@@ -12,6 +12,10 @@
 .swiftpm/
 migrate_working_dir/
 
+release.keystore
+key.properties
+keypass.txt
+
 # IntelliJ related
 *.iml
 *.ipr
