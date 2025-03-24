@@ -1,4 +1,4 @@
-package com.example.material_tap
+package com.qdesttm.materialtap
 
 import io.flutter.embedding.android.FlutterActivity
 
